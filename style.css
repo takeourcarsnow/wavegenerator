@@ -81,6 +81,9 @@ canvas {
     flex-direction: column;
     gap: 2px;
 }
+.control-group.hidden {
+    display: none;
+}
 .control-group label {
     font-size: 0.9em;
     color: #ddd;

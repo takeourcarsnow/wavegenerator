@@ -14,7 +14,7 @@
             <details open>
                 <summary><i class="fas fa-th"></i> Grid</summary>
                 <div class="controls-grid">
-                    <div class="control-group">
+                <div class="control-group">
                         <label for="gridSize" title="Resolution of the wave lines (lower = more detailed)">Resolution: <span id="gridSizeValue">3</span></label>
                         <input type="range" id="gridSize" min="1" max="200" value="3">
                     </div>
@@ -23,21 +23,21 @@
             <details open>
                 <summary><i class="fas fa-wave-square"></i> Waves</summary>
                 <div class="controls-grid">
-                    <div class="control-group">
+                 <div class="control-group">
                         <label for="waveCount" title="Number of wave layers">Count: <span id="waveCountValue">5</span></label>
                         <input type="range" id="waveCount" min="1" max="50" value="5">
-                    </div>
-                    <div class="control-group">
+                </div>
+                <div class="control-group">
                         <label for="waveSpeed" title="Speed of the wave animation">Speed: <span id="waveSpeedValue">1</span></label>
-                        <input type="range" id="waveSpeed" min="0.1" max="5" step="0.1" value="1">
-                    </div>
-                    <div class="control-group">
-                        <label for="waveAmplitude" title="Height of the waves">Amplitude: <span id="waveAmplitudeValue">200</span></label>
-                        <input type="range" id="waveAmplitude" min="1" max="100" value="100">
-                    </div>
-                    <div class="control-group">
+                    <input type="range" id="waveSpeed" min="0.1" max="5" step="0.1" value="1">
+                </div>
+                <div class="control-group">
+                        <label for="waveAmplitude">Amplitude: <span id="waveAmplitudeValue">51</span></label>
+                        <input type="range" id="waveAmplitude" min="1" max="300" value="51">
+                </div>
+                <div class="control-group">
                         <label for="waveSpacing" title="Spacing between wave layers">Spacing: <span id="waveSpacingValue">50</span></label>
-                        <input type="range" id="waveSpacing" min="10" max="200" value="50">
+                    <input type="range" id="waveSpacing" min="10" max="200" value="50">
                     </div>
                     <div class="control-group">
                         <label for="waveShape" title="Shape of the waves">Shape:</label>
@@ -46,6 +46,10 @@
                             <label><input type="radio" name="waveShape" value="square">Square</label>
                             <label><input type="radio" name="waveShape" value="triangle">Triangle</label>
                         </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="waveRotation">Wave Rotation: <span id="waveRotationValue">0</span>°</label>
+                        <input type="range" id="waveRotation" min="0" max="360" value="0">
                     </div>
                 </div>
             </details>
@@ -57,12 +61,36 @@
                         <input type="range" id="turbulence" min="0" max="2" step="0.1" value="0">
                     </div>
                     <div class="control-group">
-                        <label for="turbulenceType" title="Type of turbulence">Type:</label>
+                        <label for="turbulenceType">Type:</label>
                         <select id="turbulenceType">
                             <option value="sine">Sine Waves</option>
                             <option value="noise">Organic Noise</option>
+                            <option value="perlin">Perlin Noise</option>
+                            <option value="vortex">Vortex</option>
+                            <option value="chaos">Chaos</option>
+                            <option value="directional">Directional</option>
                             <option value="random">Random Pulses</option>
                         </select>
+                    </div>
+                    <div class="control-group turbulence-sine turbulence-perlin turbulence-directional">
+                        <label for="turbulenceIntensity">Intensity: <span id="turbulenceIntensityValue">1</span></label>
+                        <input type="range" id="turbulenceIntensity" min="0" max="3" step="0.1" value="1">
+                    </div>
+                    <div class="control-group turbulence-perlin">
+                        <label for="turbulenceOctaves">Octaves: <span id="turbulenceOctavesValue">3</span></label>
+                        <input type="range" id="turbulenceOctaves" min="1" max="8" value="3">
+                    </div>
+                    <div class="control-group turbulence-chaos">
+                        <label for="turbulenceChaos">Chaos: <span id="turbulenceChaosValue">0.5</span></label>
+                        <input type="range" id="turbulenceChaos" min="0" max="1" step="0.01" value="0.5">
+                    </div>
+                    <div class="control-group turbulence-vortex">
+                        <label for="turbulenceVortex">Vortex: <span id="turbulenceVortexValue">0</span></label>
+                        <input type="range" id="turbulenceVortex" min="-2" max="2" step="0.1" value="0">
+                    </div>
+                    <div class="control-group turbulence-directional">
+                        <label for="turbulenceDirection">Direction: <span id="turbulenceDirectionValue">0</span>°</label>
+                        <input type="range" id="turbulenceDirection" min="0" max="360" value="0">
                     </div>
                     <div class="control-group">
                         <label for="turbulenceSpeed" title="Speed of the turbulence">Speed: <span id="turbulenceSpeedValue">1</span></label>
@@ -72,7 +100,7 @@
                         <label for="turbulenceScale" title="Scale of the turbulence">Scale: <span id="turbulenceScaleValue">50</span></label>
                         <input type="range" id="turbulenceScale" min="10" max="200" value="50">
                     </div>
-                    <div class="control-group">
+                <div class="control-group">
                         <label for="turbulenceComplexity" title="Complexity of the turbulence">Complexity: <span id="turbulenceComplexityValue">1</span></label>
                         <input type="range" id="turbulenceComplexity" min="1" max="5" step="0.5" value="1">
                     </div>
@@ -82,39 +110,39 @@
                 <summary><i class="fas fa-hand-pointer"></i> Interaction</summary>
                 <div class="controls-grid">
                     <div class="control-group">
-                        <label for="lineStrength" title="Strength of the mouse interaction">Strength: <span id="lineStrengthValue">0.1</span></label>
-                        <input type="range" id="lineStrength" min="0" max="1" step="0.01" value="0.1">
-                    </div>
-                    <div class="control-group">
+                        <label for="lineStrength" title="Strength of the mouse interaction">Strength: <span id="lineStrengthValue">1</span></label>
+                        <input type="range" id="lineStrength" min="0" max="10" step="0.01" value="1">
+                </div>
+                 <div class="control-group">
                         <label for="interactionStrength" title="Force of the mouse interaction">Force: <span id="interactionStrengthValue">0.5</span></label>
-                        <input type="range" id="interactionStrength" min="0" max="2" step="0.01" value="0.5">
-                    </div>
-                    <div class="control-group">
+                    <input type="range" id="interactionStrength" min="0" max="2" step="0.01" value="0.5">
+                </div>
+                <div class="control-group">
                         <label for="mouseRadius" title="Radius of the mouse interaction">Radius: <span id="mouseRadiusValue">100</span></label>
-                        <input type="range" id="mouseRadius" min="10" max="300" value="100">
-                    </div>
-                    <div class="control-group">
+                    <input type="range" id="mouseRadius" min="10" max="300" value="100">
+                </div>
+                <div class="control-group">
                         <label for="lineWidth" title="Width of the lines">Width: <span id="lineWidthValue">3</span></label>
                         <input type="range" id="lineWidth" min="1" max="5" value="3">
-                    </div>
-                    <div class="control-group">
+                </div>
+                <div class="control-group">
                         <label for="lineColor" title="Color of the lines">Color: <input type="color" id="lineColor" value="#f0f0f0"></label>
-                    </div>
-                    <div class="control-group">
+                </div>
+                    <div class="control-group line-style-solid line-style-dashed line-style-dotted">
                         <label for="lineStyle" title="Style of the lines">Style:</label>
-                        <div class="radio-group">
-                            <label><input type="radio" name="lineStyle" value="solid" checked>Solid</label>
-                            <label><input type="radio" name="lineStyle" value="dashed">Dashed</label>
-                            <label><input type="radio" name="lineStyle" value="dotted">Dotted</label>
-                        </div>
-                    </div>
+                <div class="radio-group">
+                    <label><input type="radio" name="lineStyle" value="solid" checked>Solid</label>
+                    <label><input type="radio" name="lineStyle" value="dashed">Dashed</label>
+                    <label><input type="radio" name="lineStyle" value="dotted">Dotted</label>
+                </div>
+                </div>
                     <div class="control-group">
                         <label for="interactionMode" title="Mode of mouse interaction">Mode:</label>
-                        <div class="radio-group">
-                            <label><input type="radio" name="interactionMode" value="push" checked>Push</label>
-                            <label><input type="radio" name="interactionMode" value="pull">Pull</label>
-                            <label><input type="radio" name="interactionMode" value="both">Both</label>
-                            <label><input type="radio" name="interactionMode" value="gravity">Gravity</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="interactionMode" value="push" checked>Push</label>
+                    <label><input type="radio" name="interactionMode" value="pull">Pull</label>
+                    <label><input type="radio" name="interactionMode" value="both">Both</label>
+                    <label><input type="radio" name="interactionMode" value="gravity">Gravity</label>
                             <label><input type="radio" name="interactionMode" value="unified">Unified</label>
                         </div>
                     </div>
@@ -125,7 +153,7 @@
                 <div class="controls-grid">
                     <div class="control-group">
                         <label for="colorMode" title="Color mode of the lines">Mode:</label>
-                        <div class="radio-group">
+                <div class="radio-group">
                             <label><input type="radio" name="colorMode" value="white">White</label>
                             <label><input type="radio" name="colorMode" value="rainbow" checked>Rainbow</label>
                             <label><input type="radio" name="colorMode" value="velocity">Velocity</label>
@@ -166,6 +194,31 @@
                         <label for="glowIntensity" title="Intensity of the glow effect">Glow Strength: <span id="glowIntensityValue">30</span></label>
                         <input type="range" id="glowIntensity" min="0" max="100" value="30">
                     </div>
+                    <div class="control-group">
+                        <label><i class="fas fa-save"></i> Presets</label>
+                        <div class="preset-controls">
+                            <select id="presetSelect">
+                                <option value="custom">Custom</option>
+                                <option value="calm">Calm Waves</option>
+                                <option value="storm">Stormy Sea</option>
+                                <option value="neon">Neon Pulse</option>
+                            </select>
+                            <button id="savePresetBtn" title="Save current settings as preset">
+                                <i class="fas fa-save"></i>
+                            </button>
+                            <button id="loadPresetBtn" title="Load selected preset">
+                                <i class="fas fa-folder-open"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="globalThickness">Global Thickness: <span id="globalThicknessValue">3</span></label>
+                        <input type="range" id="globalThickness" min="1" max="10" value="3">
+                    </div>
+                    <div class="control-group">
+                        <label for="thicknessVariation">Thickness Variation: <span id="thicknessVariationValue">0</span></label>
+                        <input type="range" id="thicknessVariation" min="0" max="5" value="0">
+                    </div>
                 </div>
             </details>
             <details>
@@ -177,7 +230,19 @@
                     </div>
                     <div class="control-group">
                         <label for="friction" title="Friction of the wave points">Friction: <span id="frictionValue">0.05</span></label>
-                        <input type="range" id="friction" min="0" max="1" step="0.01" value="0.05">
+                        <input type="range" id="friction" min="0.05" max="1" step="0.01" value="0.05">
+                    </div>
+                    <div class="control-group">
+                        <label for="positionSpring" title="Position restoration strength">Position Spring: <span id="positionSpringValue">0.5</span></label>
+                        <input type="range" id="positionSpring" min="0" max="2" step="0.1" value="0.5">
+                </div>
+                <div class="control-group">
+                        <label for="velocityDamping" title="Velocity reduction factor">Velocity Damping: <span id="velocityDampingValue">0.2</span></label>
+                        <input type="range" id="velocityDamping" min="0" max="1" step="0.01" value="0.2">
+                </div>
+                <div class="control-group">
+                        <label for="maxAcceleration" title="Maximum point acceleration">Max Acceleration: <span id="maxAccelerationValue">3</span></label>
+                        <input type="range" id="maxAcceleration" min="1" max="10" value="3">
                     </div>
                 </div>
             </details>

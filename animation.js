@@ -13,6 +13,8 @@ waveCountInput.addEventListener('input', (e) => {
     document.getElementById('waveCountValue').textContent = e.target.value;
     settings.waveCount = parseInt(e.target.value);
     createWaves();
+    settings.waveThickness = Array(settings.waveCount).fill(3); // Reset thickness array
+    generateThicknessControls();
 });
 
 lineStrengthInput.addEventListener('input', (e) => {
@@ -48,8 +50,9 @@ elasticityInput.addEventListener('input', (e) => {
 });
 
 frictionInput.addEventListener('input', (e) => {
-    document.getElementById('frictionValue').textContent = e.target.value;
-    settings.friction = parseFloat(e.target.value);
+    const rawValue = parseFloat(e.target.value);
+    settings.friction = Math.max(settings.minFriction, rawValue);
+    document.getElementById('frictionValue').textContent = settings.friction.toFixed(2);
 });
 
 backgroundColorInput.addEventListener('input', (e) => {
@@ -120,10 +123,8 @@ waveSpeedInput.addEventListener('input', (e) => {
 
 waveAmplitudeInput.addEventListener('input', (e) => {
     const rawValue = parseFloat(e.target.value);
-    // Change to linear scaling and increase range
-    const scaledValue = 1 + (200 - 1) * (rawValue - 1) / (100 - 1); // Map 1-100 input to 1-200 output
-    document.getElementById('waveAmplitudeValue').textContent = Math.round(scaledValue);
-    settings.waveAmplitude = Math.round(scaledValue);
+    document.getElementById('waveAmplitudeValue').textContent = rawValue;
+    settings.waveAmplitude = rawValue;
 });
 
 waveSpacingInput.addEventListener('input', (e) => {
@@ -146,6 +147,7 @@ turbulenceInput.addEventListener('input', (e) => {
 // Add these to existing input listeners
 document.getElementById('turbulenceType').addEventListener('change', (e) => {
     settings.turbulenceType = e.target.value;
+    updateTurbulenceVisibility();
 });
 
 document.getElementById('turbulenceSpeed').addEventListener('input', (e) => {
@@ -172,7 +174,7 @@ randomButton.addEventListener('click', () => {
     settings.waveAmplitude = Math.floor(Math.random() * 199) + 1;
     settings.lineWidth = Math.floor(Math.random() * 4) + 1;
     settings.elasticity = Math.random();
-    settings.friction = Math.random();
+    settings.friction = Math.max(settings.minFriction, Math.random());
     settings.turbulence = Math.random() * 2;
     settings.turbulenceSpeed = Math.random() * 3;
     settings.turbulenceScale = Math.floor(Math.random() * 190) + 10;
@@ -201,7 +203,7 @@ randomButton.addEventListener('click', () => {
 defaultButton.addEventListener('click', () => {
     settings.gridSize = 3;
     settings.waveCount = 5;
-    settings.waveAmplitude = 200;
+    settings.waveAmplitude = 51;
     settings.lineWidth = 3;
     settings.elasticity = 0.2;
     settings.friction = 0.05;
@@ -262,8 +264,8 @@ function animate() {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
-    // Update mouse position with smoothing
-    const smoothFactor = 0.3;
+    // Smoother mouse tracking
+    const smoothFactor = 0.2; // Reduced from 0.3 for more smoothing
     mouse.vx = (mouse.x - mouse.smoothX) * smoothFactor;
     mouse.vy = (mouse.y - mouse.smoothY) * smoothFactor;
     mouse.smoothX += mouse.vx;
@@ -347,4 +349,246 @@ document.getElementById('glowEffect').addEventListener('change', (e) => {
 document.getElementById('glowIntensity').addEventListener('input', (e) => {
     document.getElementById('glowIntensityValue').textContent = e.target.value;
     settings.glowIntensity = parseInt(e.target.value);
-}); 
+});
+
+// Add to existing event listeners
+document.getElementById('positionSpring').addEventListener('input', (e) => {
+    document.getElementById('positionSpringValue').textContent = e.target.value;
+    settings.positionSpring = parseFloat(e.target.value);
+});
+
+document.getElementById('velocityDamping').addEventListener('input', (e) => {
+    document.getElementById('velocityDampingValue').textContent = e.target.value;
+    settings.velocityDamping = parseFloat(e.target.value);
+});
+
+document.getElementById('maxAcceleration').addEventListener('input', (e) => {
+    document.getElementById('maxAccelerationValue').textContent = e.target.value;
+    settings.maxAcceleration = parseFloat(e.target.value);
+});
+
+// Add to existing event listeners
+document.getElementById('turbulenceIntensity').addEventListener('input', (e) => {
+    document.getElementById('turbulenceIntensityValue').textContent = e.target.value;
+    settings.turbulenceIntensity = parseFloat(e.target.value);
+});
+
+document.getElementById('turbulenceOctaves').addEventListener('input', (e) => {
+    document.getElementById('turbulenceOctavesValue').textContent = e.target.value;
+    settings.turbulenceOctaves = parseInt(e.target.value);
+});
+
+document.getElementById('turbulenceChaos').addEventListener('input', (e) => {
+    document.getElementById('turbulenceChaosValue').textContent = e.target.value;
+    settings.turbulenceChaos = parseFloat(e.target.value);
+});
+
+document.getElementById('turbulenceVortex').addEventListener('input', (e) => {
+    document.getElementById('turbulenceVortexValue').textContent = e.target.value;
+    settings.turbulenceVortex = parseFloat(e.target.value);
+});
+
+document.getElementById('turbulenceDirection').addEventListener('input', (e) => {
+    document.getElementById('turbulenceDirectionValue').textContent = e.target.value;
+    settings.turbulenceDirection = parseInt(e.target.value);
+});
+
+function updateTurbulenceVisibility() {
+    const type = settings.turbulenceType;
+    const groups = document.querySelectorAll('[class*="turbulence-"]');
+    
+    groups.forEach(group => {
+        const shouldShow = Array.from(group.classList).some(className => 
+            className.startsWith('turbulence-') && 
+            className === `turbulence-${type}`
+        );
+        
+        group.classList.toggle('hidden', !shouldShow);
+    });
+}
+
+// Initial call to set correct visibility
+updateTurbulenceVisibility();
+
+// Preset configurations
+const builtInPresets = {
+    calm: {
+        waveAmplitude: 50,
+        waveSpeed: 0.8,
+        turbulence: 0.2,
+        turbulenceType: 'sine',
+        lineColor: '#4a90e2',
+        blendMode: 'source-over'
+    },
+    storm: {
+        waveAmplitude: 150,
+        waveSpeed: 1.8,
+        turbulence: 2.0,
+        turbulenceType: 'perlin',
+        turbulenceOctaves: 5,
+        lineColor: '#2c3e50',
+        backgroundColor: '#f0f0f0'
+    },
+    neon: {
+        lineColor: '#00ff9d',
+        blendMode: 'screen',
+        glowEffect: true,
+        glowIntensity: 80,
+        backgroundColor: '#000000',
+        plexEffect: true,
+        plexIntensity: 75
+    }
+};
+
+// Preset management
+document.getElementById('savePresetBtn').addEventListener('click', () => {
+    const presetName = prompt('Preset name:');
+    if (presetName) {
+        localStorage.setItem(`wavePreset_${presetName}`, JSON.stringify(settings));
+        updatePresetList();
+    }
+});
+
+document.getElementById('loadPresetBtn').addEventListener('click', () => {
+    const presetName = document.getElementById('presetSelect').value;
+    if (presetName === 'custom') return;
+    
+    const presetData = builtInPresets[presetName] || 
+                      JSON.parse(localStorage.getItem(`wavePreset_${presetName}`));
+    
+    if (presetData) {
+        Object.keys(presetData).forEach(key => {
+            if (settings.hasOwnProperty(key)) {
+                settings[key] = presetData[key];
+            }
+        });
+        updateUI();
+        createWaves();
+    }
+});
+
+function updatePresetList() {
+    const select = document.getElementById('presetSelect');
+    select.innerHTML = '<option value="custom">Custom</option>';
+    
+    // Add built-in presets
+    Object.keys(builtInPresets).forEach(preset => {
+        const option = new Option(preset.charAt(0).toUpperCase() + preset.slice(1), preset);
+        select.add(option);
+    });
+    
+    // Add user presets
+    Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('wavePreset_')) {
+            const presetName = key.replace('wavePreset_', '');
+            select.add(new Option(presetName, presetName));
+        }
+    });
+}
+
+// Initialize preset list
+updatePresetList();
+
+// Add similar visibility updates for other control groups
+function updateLineStyleVisibility() {
+    const style = settings.lineStyle;
+    document.querySelectorAll('.line-style-control').forEach(control => {
+        control.classList.toggle('hidden', !control.classList.contains(`line-style-${style}`));
+    });
+}
+
+function updateControlVisibility() {
+    // Glow effect controls
+    document.getElementById('glowIntensity').parentElement.classList.toggle('hidden', !settings.glowEffect);
+    
+    // Trail effect controls
+    document.getElementById('plexIntensity').parentElement.classList.toggle('hidden', !settings.plexEffect);
+    
+    // Background image controls
+    document.getElementById('uploadButton').parentElement.classList.toggle('hidden', !!settings.backgroundImage);
+}
+
+// Add to all relevant event listeners
+document.querySelectorAll('input, select').forEach(control => {
+    control.addEventListener('change', updateControlVisibility);
+});
+
+// Initial update
+updateControlVisibility();
+
+document.getElementById('waveRotation').addEventListener('input', (e) => {
+    document.getElementById('waveRotationValue').textContent = e.target.value;
+    settings.waveRotation = parseInt(e.target.value);
+    createWaves(); // Redraw waves with new rotation
+});
+
+document.getElementById('lineColor').addEventListener('input', (e) => {
+    settings.lineColor = e.target.value;
+});
+
+// Add to existing event listeners
+document.getElementById('globalThickness').addEventListener('input', (e) => {
+    const globalThicknessValue = parseInt(e.target.value);
+    document.getElementById('globalThicknessValue').textContent = globalThicknessValue;
+
+    // Update all individual thickness values based on the global thickness
+    for (let i = 0; i < settings.waveCount; i++) {
+        settings.waveThickness[i] = globalThicknessValue;
+    }
+});
+
+document.getElementById('thicknessVariation').addEventListener('input', (e) => {
+    const variationValue = parseInt(e.target.value);
+    document.getElementById('thicknessVariationValue').textContent = variationValue;
+
+    // Update individual thickness values based on the global thickness and variation
+    const globalThicknessValue = parseInt(document.getElementById('globalThickness').value);
+    for (let i = 0; i < settings.waveCount; i++) {
+        const randomVariation = Math.floor(Math.random() * (variationValue + 1));
+        settings.waveThickness[i] = globalThicknessValue + randomVariation;
+    }
+});
+
+function generateThicknessControls() {
+    const thicknessControls = document.getElementById('thicknessControls');
+    thicknessControls.innerHTML = ''; // Clear existing controls
+
+    for (let i = 0; i < settings.waveCount; i++) {
+        const controlDiv = document.createElement('div');
+        controlDiv.classList.add('thickness-control');
+
+        const label = document.createElement('label');
+        label.setAttribute('for', `thickness${i + 1}`);
+        label.textContent = `Layer ${i + 1}: `;
+
+        const valueSpan = document.createElement('span');
+        valueSpan.id = `thickness${i + 1}Value`;
+        valueSpan.textContent = settings.waveThickness[i] || 3; // Use existing value or default
+
+        const input = document.createElement('input');
+        input.type = 'range';
+        input.id = `thickness${i + 1}`;
+        input.min = 1;
+        input.max = 10;
+        input.value = settings.waveThickness[i] || 3; // Use existing value or default
+
+        input.addEventListener('input', (e) => {
+            settings.waveThickness[i] = parseInt(e.target.value);
+            valueSpan.textContent = e.target.value;
+        });
+
+        label.appendChild(valueSpan);
+        controlDiv.appendChild(label);
+        controlDiv.appendChild(input);
+        thicknessControls.appendChild(controlDiv);
+    }
+}
+
+// Call generateThicknessControls when waveCount changes
+waveCountInput.addEventListener('input', () => {
+    settings.waveThickness = Array(settings.waveCount).fill(3); // Reset thickness array
+    generateThicknessControls();
+});
+
+// Initial call to generate thickness controls
+generateThicknessControls(); 

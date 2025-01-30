@@ -20,16 +20,32 @@ class WavePoint {
         if (Math.abs(mousePos.y - this.y) < settings.mouseRadius * 2) {
             if (dist < settings.mouseRadius) {
                 const normalizedDist = dist / settings.mouseRadius;
+                // Scale force based on distance
                 force = (1 - normalizedDist) * settings.lineStrength * settings.interactionStrength;
-                // Velocity-based interaction
-                force *= Math.min(vec2Len(vec2(mouse.vx, mouse.vy)), 5);
+                force *= (1 - Math.pow(normalizedDist, 2)); // Non-linear scaling
+                
+                // Velocity-based force scaling with non-linear response
+                const mouseSpeed = vec2Len(vec2(mouse.vx, mouse.vy));
+                force *= Math.min(mouseSpeed, 5) * (0.5 + mouseSpeed/10);
 
                 let forceVec = vec2Scale(diff, force);
 
+                // Limit vertical force and add horizontal spread
+                forceVec.y *= 0.5; // Reduce vertical force by half
+                forceVec.x *= 0.2; // Add a small horizontal force component
+
                 if (settings.interactionMode === 'push') {
                     this.vy += forceVec.y;
+                    if (neighbors.length > 0) { // Apply horizontal force to neighbors
+                        neighbors[0].vy += forceVec.x * 0.5;
+                        neighbors[neighbors.length - 1].vy += forceVec.x * 0.5;
+                    }
                 } else if (settings.interactionMode === 'pull') {
                     this.vy -= forceVec.y;
+                    if (neighbors.length > 0) { // Apply horizontal force to neighbors
+                        neighbors[0].vy -= forceVec.x * 0.5;
+                        neighbors[neighbors.length - 1].vy -= forceVec.x * 0.5;
+                    }
                 } else if (settings.interactionMode === 'both') {
                     this.vy += forceVec.y;
                 } else if (settings.interactionMode === 'gravity') {
@@ -41,13 +57,27 @@ class WavePoint {
             }
         }
 
-        // Neighboring point influence
+        // Apply damping and force limits
+        const dt = 16/1000; // Approximate delta time for 60fps
+        force = Math.min(force, settings.maxForce);
+        
+        // Add position-based spring force
+        const positionSpring = (this.originalY - this.y) * settings.positionSpring * dt;
+        this.vy += positionSpring;
+
+        // Modified velocity damping
+        this.vy -= this.vy * settings.velocityDamping * dt;
+
+        // Enhanced neighbor influence
         let neighborInfluence = 0;
         if (neighbors) {
             neighbors.forEach(neighbor => {
-                neighborInfluence += (neighbor.y - this.y) * 0.1;
+                const dy = neighbor.y - this.y;
+                const influence = dy * settings.neighborInfluence * (1 - Math.abs(dy)/50);
+                neighborInfluence += influence;
             });
             neighborInfluence /= neighbors.length;
+            neighborInfluence *= dt; // Make time-step independent
         }
         this.vy += neighborInfluence;
 
@@ -57,6 +87,39 @@ class WavePoint {
         const timeFactor = time * settings.turbulenceSpeed;
         
         switch(settings.turbulenceType) {
+            case 'perlin':
+                // Improved Perlin noise implementation
+                turbulence = this.fbm(
+                    this.x * 0.005 * scaleFactor + timeFactor,
+                    timeFactor,
+                    settings.turbulenceOctaves
+                ) * settings.turbulenceIntensity;
+                break;
+
+            case 'vortex':
+                // Swirling vortex pattern
+                const angle = Math.atan2(this.y - canvas.height/2, this.x - canvas.width/2);
+                turbulence = Math.sin(angle * 5 + timeFactor * 2) * 
+                           Math.cos(timeFactor) * 
+                           settings.turbulenceVortex;
+                break;
+
+            case 'chaos':
+                // Random chaotic movement
+                turbulence = (Math.random() - 0.5) * 
+                           settings.turbulenceChaos * 
+                           Math.sin(timeFactor);
+                break;
+
+            case 'directional':
+                // Directional waves
+                turbulence = Math.sin(
+                    (this.x * Math.cos(settings.turbulenceDirection) + 
+                     this.y * Math.sin(settings.turbulenceDirection)) * 0.01 * scaleFactor + 
+                    timeFactor
+                ) * settings.turbulenceIntensity;
+                break;
+
             case 'sine':
                 turbulence = Math.sin(timeFactor * 0.8 + this.x * 0.01 * scaleFactor) * 
                             Math.cos(timeFactor * 0.6 + this.x * 0.015 * scaleFactor);
@@ -109,10 +172,37 @@ class WavePoint {
         const curveForce = (idealY - this.y) * 0.05;
         this.vy += curveForce;
 
-        const springY = (this.originalY - this.y) * settings.elasticity;
+        // Add position-based spring force
+        const springY = (this.originalY - this.y) * settings.elasticity * dt;
         this.vy += springY;
-        this.vy *= settings.friction;
+        this.vy *= (1 - settings.friction);
+
+        // Enhanced acceleration limits
+        const MAX_ACCELERATION = settings.maxAcceleration;
+        this.vy = Math.max(-MAX_ACCELERATION, Math.min(this.vy, MAX_ACCELERATION));
+
         this.y += this.vy;
+
+        // Apply smoothing
+        this.smooth(neighbors);
+
+        // Limit maximum velocity
+        const MAX_VELOCITY = 100; // Adjust as necessary
+        this.vy = Math.max(-MAX_VELOCITY, Math.min(this.vy, MAX_VELOCITY));
+
+        // Apply damping
+        this.vy *= (1 - settings.velocityDamping);
+    }
+
+    smooth(neighbors) {
+        if (neighbors.length > 0) {
+            let avgY = this.y;
+            neighbors.forEach(neighbor => {
+                avgY += neighbor.y;
+            });
+            avgY /= (neighbors.length + 1); // Include self
+            this.y = avgY; // Smooth the position
+        }
     }
 
     fbm(x, y, octaves) {
@@ -195,9 +285,13 @@ class WaveLayer {
     }
 
     draw(time) {
+        ctx.save(); // Save the current state
+        ctx.translate(canvas.width / 2, canvas.height / 2); // Move to center
+        ctx.rotate((settings.waveRotation * Math.PI) / 180); // Rotate by the angle in radians
+        ctx.translate(-canvas.width / 2, -canvas.height / 2); // Move back
+
         // Glow effect
         if(settings.glowEffect) {
-            ctx.save();
             ctx.globalCompositeOperation = 'screen';
             ctx.filter = `blur(${settings.glowIntensity}px) brightness(150%)`;
             ctx.stroke();
@@ -234,12 +328,19 @@ class WaveLayer {
         // Draw main wave
         ctx.globalCompositeOperation = settings.blendMode;
         ctx.beginPath();
-        ctx.moveTo(this.points[0].x, this.points[0].y);
-        for (let i = 0; i < this.points.length - 1; i++) {
-            const p1 = this.points[i];
-            const p2 = this.points[i + 1];
-            ctx.lineTo(p2.x, p2.y);
+        for (let i = 0; i < this.points.length; i++) {
+            const point = this.points[i];
+            if (i === 0) {
+                ctx.moveTo(point.x, point.y);
+            } else {
+                // Apply smoothing to avoid sharp corners
+                const prevPoint = this.points[i - 1];
+                const midX = (prevPoint.x + point.x) / 2;
+                const midY = (prevPoint.y + point.y) / 2;
+                ctx.quadraticCurveTo(prevPoint.x, prevPoint.y, midX, midY);
+            }
         }
+        ctx.lineTo(this.points[this.points.length - 1].x, this.points[this.points.length - 1].y);
 
         if (settings.colorMode === 'rainbow') {
             ctx.strokeStyle = `hsl(${this.hue}, 100%, 50%)`;
@@ -263,7 +364,7 @@ class WaveLayer {
             ctx.strokeStyle = settings.lineColor;
         }
 
-        ctx.lineWidth = settings.lineWidth;
+        ctx.lineWidth = settings.waveThickness[this.index - 1] || 3; // Use the thickness for this layer or default
         
         if (settings.lineStyle === 'dashed') {
             ctx.setLineDash([5, 5]);
@@ -278,6 +379,7 @@ class WaveLayer {
         if(settings.glowEffect) {
             ctx.restore(); // Remove filter after main draw
         }
+        ctx.restore(); // Restore the original state
     }
 }
 
